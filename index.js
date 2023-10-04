@@ -1,71 +1,80 @@
-const axios = require('axios');
+const express = require('express');
+const app = express();
+const https = require('https');
 const cheerio = require('cheerio');
-const { fetchPage } = require('./utils.js');
+const { gotScraping } = require('got-scraping');
+const { readLogsFromDatabase, writeLogToDatabase, isDuplicateLog } = require('./database.js');
 
-const HLTVScraper = (root) => {
-    const selector = (selector) => {
-      return attachMethods(root(selector));
-    };
-    Object.assign(selector, root);
-  
-    return selector;
-  };
+const defaultAgent = new https.Agent();
 
+// Middleware to parse JSON in requests
+app.use(express.json());
 
-// URL da página de transferências
-const url = 'https://www.hltv.org/transfers';
-
-// Função para raspar as informações de transferência
-async function scrapeTransfers() {
+app.get('/getTransfer', async (req, res) => {
   try {
-    // Fazer a solicitação HTTP para a página
-    const response = await fetchPage(url);
+    const url = 'https://www.hltv.org/transfers';
 
-    console.log(HLTVScraper(response.data));
+    // Make an HTTP GET request to the page
+    const response = await gotScraping({ url, agent: { http: defaultAgent, https: defaultAgent } }).then(
+      (res) => res.body
+    );
 
-    // Carregar o HTML da página com Cheerio
-    const $ = cheerio.load(response.data);
+    const $ = cheerio.load(response);
+    let transferRows = $('.col-box-con .transfer-row');
 
-    // Selecione todos os elementos com a classe "transfer-row"
-    const transferRows = $('.transfer-row');
+    // transferRows = Array.from(transferRows).reverse();
+    let transfers = [];
+    // Find the first non-duplicate transfer
+    for (const element of transferRows) {
+      if (transfers.length >= 49) break;
 
-    // Array para armazenar as informações das transferências
-    const transfers = [];
-
-    // Iterar sobre cada elemento "transfer-row"
-    transferRows.each((index, element) => {
       const transfer = {};
-
-      // Extrair as informações do jogador e equipe
-      const player = $(element).find('.transfer-movement b').text();
-      const team = $(element).find('.transfer-team-container:last-child').text().trim();
-
-      // Extrair a data da transferência
+      const player = $(element).find('img.transfer-player-image').attr('alt');
+      const team_from = $(element).find('.transfer-teams-container a:first-child').find('img').attr('alt');
+      const team_to = $(element).find('.transfer-teams-container a:eq(1)').find('img').attr('alt');
       const date = $(element).find('.transfer-date').text().trim();
+      const movement = $(element).find('.transfer-movement').text().trim();
+      const data_unix = $(element).find('.transfer-date').attr('data-unix');
+      
+      const id = (player + team_from + team_to + data_unix + movement).replace(/'/g, '');
 
-      // Preencher o objeto de transferência com as informações
+      transfer.id = id;
       transfer.player = player;
-      transfer.team = team;
+      transfer.teamFrom = team_from;
+      transfer.teamTo = team_to;
       transfer.date = date;
+      transfer.dateUnix = data_unix / 1;
+      transfer.movement = movement;
 
-      // Adicionar a transferência ao array
       transfers.push(transfer);
-    });
+      
+    }
 
-    // Retornar o array de transferências
-    return transfers;
+    transfers = Array.from(transfers).reverse();
+
+    for (const transfer of transfers) {
+
+        const existingLogs = await isDuplicateLog(transfer.id);
+
+        if (!existingLogs) {
+          
+          await writeLogToDatabase(transfer.id);
+          return res.json(transfer);
+        }
+    }
+
+    // If no new transfers are found
+    return res.json({ result: 'No new transfers' });
   } catch (error) {
-    console.error('Ocorreu um erro ao raspar as informações:', error);
-    throw error;
+    console.error('An error occurred while fetching the page:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
-}
+});
 
-// Chamar a função para raspar as informações de transferência
-scrapeTransfers()
-  .then((transfers) => {
-    // Exibir as transferências
-    console.log(transfers);
-  })
-  .catch((error) => {
-    console.error('Erro:', error);
-  });
+// Define a port for your Express server to listen on
+const port = process.env.PORT || 3000;
+
+// Start the Express server
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
