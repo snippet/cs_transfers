@@ -16,6 +16,10 @@ app.get('/', (req, res) => {
 })
 
 app.get('/about', (req, res) => {
+  res.send('This is my about route..... ')
+})
+
+app.get('/getTransfer', async (req, res) => {
   try {
     const url = 'https://www.hltv.org/transfers';
 
@@ -74,7 +78,7 @@ app.get('/about', (req, res) => {
     console.error('An error occurred while fetching the page:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
-  
+});
 
-  xport the Express API
-  le.exports = app
+// Export the Express API
+module.exports = app
