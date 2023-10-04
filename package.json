@@ -1,0 +1,21 @@
+{
+  "name": "transfers",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.5.1",
+    "cheerio": "^1.0.0-rc.12",
+    "crypto": "^1.0.1",
+    "express": "^4.18.2",
+    "got-scraping": "^3.2.15",
+    "http": "^0.0.1-security",
+    "https": "^1.0.0"
+  }
+}
