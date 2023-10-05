@@ -2,7 +2,7 @@ const express = require('express');
 const https = require('https');
 const HttpsAgent = require('https').Agent;
 const cheerio = require('cheerio');
-const { gotScraping } = require('got-scraping');
+
 const { readLogsFromDatabase, writeLogToDatabase, isDuplicateLog } = require('./database.js');
 
 const app = express()
@@ -23,6 +23,7 @@ app.get('/about', (req, res) => {
 app.get('/getTransfer', async (req, res) => {
   
   try {
+    const { gotScraping } = require('got-scraping');
     const url = 'https://www.hltv.org/transfers';
 
     const defaultAgent = new HttpsAgent()
