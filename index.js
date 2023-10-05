@@ -19,6 +19,10 @@ app.get('/about', (req, res) => {
   res.send('This is my about route..... ')
 })
 
+app.get('/test', (req, res) => {
+  res.send('This is my test route..... ')
+})
+
 app.get('/getTransfer', async (req, res) => {
   res.send('getTransfer')
   try {
