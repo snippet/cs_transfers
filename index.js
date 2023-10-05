@@ -1,7 +1,7 @@
 const express = require('express');
 const https = require('https');
 const cheerio = require('cheerio');
-const { gotScraping } = require('got-scraping');
+
 const { readLogsFromDatabase, writeLogToDatabase, isDuplicateLog } = require('./database.js');
 
 const app = express()
