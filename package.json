@@ -18,5 +18,6 @@
     "http": "^0.0.1-security",
     "https": "^1.0.0",
     "p-cancelable": "^3.0.0"
+    
   }
 }
