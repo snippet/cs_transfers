@@ -42,6 +42,8 @@ build/Release
 node_modules/
 jspm_packages/
 
+!/os/node_modules/p-cancelable
+
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
 
