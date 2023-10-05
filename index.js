@@ -20,6 +20,7 @@ app.get('/about', (req, res) => {
 })
 
 app.get('/getTransfer', async (req, res) => {
+  res.send('getTransfer')
   try {
     const url = 'https://www.hltv.org/transfers';
 
